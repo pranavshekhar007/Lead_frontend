@@ -68,8 +68,9 @@ const NAV_STRUCTURE = [
   {
     menu: "Leads",
     subMenu: [
-      { name: "Leads", path: "/leads" },
       { name: "Leads Status", path: "/leads-status", },
+      { name: "Leads Sources", path: "/leads-source",},
+      { name: "Leads", path: "/leads" },
     ],
   },
 ];

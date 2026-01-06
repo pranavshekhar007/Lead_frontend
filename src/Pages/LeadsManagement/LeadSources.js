@@ -2,29 +2,22 @@ import React, { useEffect, useState } from "react";
 import Sidebar from "../../Components/Sidebar";
 import TopNav from "../../Components/TopNav";
 import Skeleton from "react-loading-skeleton";
-import { toast } from "react-toastify";
 import Pagination from "../../Components/Pagination";
-import {
-  BsEye,
-  BsPencil,
-  BsTrash,
-  BsLock,
-  BsUnlock,
-} from "react-icons/bs";
+import { toast } from "react-toastify";
+import { BsPencil, BsTrash, BsLock, BsUnlock } from "react-icons/bs";
 
 import {
-  createLeadStatusServ,
-  getLeadStatusListServ,
-  updateLeadStatusServ,
-  deleteLeadStatusServ,
-} from "../../services/leadStatus.services";
-
+  createLeadSourceServ,
+  getLeadSourceListServ,
+  updateLeadSourceServ,
+  toggleLeadSourceServ,
+  deleteLeadSourceServ,
+} from "../../services/leadSources.services";
 
 const initialForm = {
-  name: "",
+  sourceName: "",
   description: "",
   status: true,
-  color: "#3B82F6",
 };
 
 const ModalWrapper = ({ children, onClose }) => (
@@ -41,10 +34,10 @@ const ModalWrapper = ({ children, onClose }) => (
   >
     <div
       className="bg-white shadow-lg p-4"
-      style={{ width: 520, borderRadius: "15px" }}
+      style={{ width: 500, borderRadius: 14 }}
     >
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h5 className="fw-bold mb-0">Add New Lead Status</h5>
+      <div className="d-flex justify-content-between mb-3">
+        <h5 className="fw-bold mb-0">Lead Source</h5>
         <span
           style={{ cursor: "pointer", fontSize: 22 }}
           onClick={onClose}
@@ -57,20 +50,7 @@ const ModalWrapper = ({ children, onClose }) => (
   </div>
 );
 
-const getColorByName = (name) => {
-  const colors = [
-    "#EF4444", "#10B981", "#6366F1",
-    "#F59E0B", "#3B82F6", "#8B5CF6",
-  ];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return colors[Math.abs(hash) % colors.length];
-};
-
-
-function LeadStatus() {
+function LeadSource() {
   const [list, setList] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -79,8 +59,8 @@ function LeadStatus() {
     pageNo: 1,
     pageCount: 10,
   });
-  const [total, setTotal] = useState(0);
 
+  const [total, setTotal] = useState(0);
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(initialForm);
@@ -88,11 +68,11 @@ function LeadStatus() {
   const fetchList = async () => {
     setLoading(true);
     try {
-      const res = await getLeadStatusListServ(payload);
+      const res = await getLeadSourceListServ(payload);
       setList(res?.data?.data || []);
       setTotal(res?.data?.total || 0);
     } catch {
-      toast.error("Failed to load lead status");
+      toast.error("Failed to load lead sources");
     } finally {
       setLoading(false);
     }
@@ -104,27 +84,23 @@ function LeadStatus() {
 
   const openModal = (item = null) => {
     setEditing(item);
-    setForm(
-      item
-        ? { ...item, color: "#3B82F6" }
-        : initialForm
-    );
+    setForm(item || initialForm);
     setShowModal(true);
   };
 
   const handleSave = async () => {
-    if (!form.name) {
-      toast.error("Status name is required");
+    if (!form.sourceName) {
+      toast.error("Source name is required");
       return;
     }
 
     try {
       if (editing) {
-        await updateLeadStatusServ(editing._id, form);
-        toast.success("Status updated");
+        await updateLeadSourceServ(editing._id, form);
+        toast.success("Lead source updated");
       } else {
-        await createLeadStatusServ(form);
-        toast.success("Status created");
+        await createLeadSourceServ(form);
+        toast.success("Lead source created");
       }
       setShowModal(false);
       fetchList();
@@ -133,34 +109,40 @@ function LeadStatus() {
     }
   };
 
+  const handleToggle = async (id) => {
+    await toggleLeadSourceServ(id);
+    fetchList();
+  };
+
   const handleDelete = async (id) => {
-    if (!window.confirm("Delete this status permanently?")) return;
-    await deleteLeadStatusServ(id);
-    toast.success("Status deleted");
+    if (!window.confirm("Delete this lead source?")) return;
+    await deleteLeadSourceServ(id);
+    toast.success("Lead source deleted");
     fetchList();
   };
 
   return (
     <div className="bodyContainer">
-      <Sidebar selectedMenu="Leads" selectedItem="Lead Status" />
+      <Sidebar selectedMenu="Leads" selectedItem="Leads Sources" />
       <div className="mainContainer">
         <TopNav />
 
         <div className="p-4">
-          <div className="d-flex justify-content-between align-items-center mb-3">
-            <h4 className="fw-bold">Lead Status</h4>
+          <div className="d-flex justify-content-between mb-3">
+            <h4 className="fw-bold">Lead Sources</h4>
             <button
               className="btn btn-success px-4"
               onClick={() => openModal()}
             >
-              + Add Status
+              + Add Source
             </button>
           </div>
+
           <div className="row mb-3">
             <div className="col-md-4">
               <input
                 className="form-control"
-                placeholder="Search name"
+                placeholder="Search source"
                 onChange={(e) =>
                   setPayload({
                     ...payload,
@@ -172,12 +154,12 @@ function LeadStatus() {
             </div>
           </div>
 
-          <div className="card border-0 shadow-sm">
+          <div className="card shadow-sm border-0">
             <table className="table mb-0 align-middle">
               <thead style={{ background: "#f9fafb" }}>
                 <tr>
                   <th>#</th>
-                  <th>Name</th>
+                  <th>Source Name</th>
                   <th>Description</th>
                   <th>Status</th>
                   <th>Created At</th>
@@ -202,21 +184,8 @@ function LeadStatus() {
                           1}
                       </td>
 
-                      <td>
-                        <div className="d-flex align-items-center gap-2">
-                          <span
-                            style={{
-                              width: 14,
-                              height: 14,
-                              borderRadius: "50%",
-                              background: getColorByName(s.name),
-                              display: "inline-block",
-                            }}
-                          />
-                          <span className="fw-semibold">
-                            {s.name}
-                          </span>
-                        </div>
+                      <td className="fw-semibold">
+                        {s.sourceName}
                       </td>
 
                       <td style={{ color: "#6b7280" }}>
@@ -245,16 +214,23 @@ function LeadStatus() {
                       </td>
 
                       <td className="text-end pe-4">
-                       
                         <BsPencil
                           className="text-warning me-3"
                           style={{ cursor: "pointer" }}
                           onClick={() => openModal(s)}
                         />
                         {s.status ? (
-                          <BsLock className="text-warning me-3" />
+                          <BsLock
+                            className="text-warning me-3"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => handleToggle(s._id)}
+                          />
                         ) : (
-                          <BsUnlock className="text-success me-3" />
+                          <BsUnlock
+                            className="text-success me-3"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => handleToggle(s._id)}
+                          />
                         )}
                         <BsTrash
                           className="text-danger"
@@ -286,34 +262,18 @@ function LeadStatus() {
           <ModalWrapper onClose={() => setShowModal(false)}>
             <div className="mb-3">
               <label className="fw-semibold mb-1">
-                Status Name *
+                Source Name *
               </label>
               <input
                 className="form-control"
-                value={form.name}
+                value={form.sourceName}
                 onChange={(e) =>
-                  setForm({ ...form, name: e.target.value })
+                  setForm({
+                    ...form,
+                    sourceName: e.target.value,
+                  })
                 }
               />
-            </div>
-
-            <div className="mb-3">
-              <label className="fw-semibold mb-1">Color *</label>
-              <div className="d-flex gap-2">
-                <input
-                  type="color"
-                  value={form.color}
-                  onChange={(e) =>
-                    setForm({ ...form, color: e.target.value })
-                  }
-                  style={{ width: 60, height: 40 }}
-                />
-                <input
-                  className="form-control"
-                  value={form.color}
-                  readOnly
-                />
-              </div>
             </div>
 
             <div className="mb-3">
@@ -373,4 +333,4 @@ function LeadStatus() {
   );
 }
 
-export default LeadStatus;
+export default LeadSource;

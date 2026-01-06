@@ -78,6 +78,7 @@ import ExpenseDashboard from '../Pages/Collection/ExpenseDashboard';
 import FinanceDashboard from '../Pages/Finance Management/FinanceDashboard';
 import Leads from '../Pages/LeadsManagement/Leads';
 import LeadStatus from '../Pages/LeadsManagement/LeadStatus';
+import LeadSource from '../Pages/LeadsManagement/LeadSources';
 
 
 function AuthenticatedRoutes() {
@@ -217,6 +218,7 @@ function AuthenticatedRoutes() {
         {/* Leads  */}
         <Route path='/leads' element={<Leads />} />
         <Route path='/leads-status' element={<LeadStatus />} />
+        <Route path='/leads-source' element={<LeadSource />} />
     </Routes>
   )
 }

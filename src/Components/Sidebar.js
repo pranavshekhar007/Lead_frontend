@@ -114,8 +114,9 @@ function Sidebar({ selectedMenu, selectedItem }) {
         menuIcon: "https://cdn-icons-png.flaticon.com/128/3839/3839635.png",
         menu: "Leads",
         subMenu: [
-          { name: "Leads", path: "/leads", module: "Leads" },
           { name: "Leads Status", path: "/leads-status", module: "Leads Status" },
+          { name: "Leads Sources", path: "/leads-source", module: "Leads Sources" },
+          { name: "Leads", path: "/leads", module: "Leads" },
         ],
       },
     ],
