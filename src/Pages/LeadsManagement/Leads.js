@@ -18,7 +18,6 @@ import { getLeadSourceListServ } from "../../services/leadSources.services";
 import LeadColumn from "./LeadColumn";
 import AddLeadModal from "./AddLeadModal";
 
-/* ================= INITIAL FORM (SCHEMA MAPPED) ================= */
 const initialForm = {
   leadName: "",
   email: "",
@@ -36,7 +35,6 @@ const initialForm = {
 };
 
 function Leads() {
-  /* ================= STATES ================= */
   const [allLeads, setAllLeads] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [sources, setSources] = useState([]);
@@ -49,7 +47,6 @@ function Leads() {
   const [searchKey, setSearchKey] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
-  /* ================= FETCH DATA ================= */
   const fetchAll = async () => {
     setLoading(true);
     try {
@@ -73,7 +70,6 @@ function Leads() {
     fetchAll();
   }, []);
 
-  /* ================= DRAG & DROP ================= */
   const onDragEnd = async ({ active, over }) => {
     if (!over) return;
     if (active.id === over.id) return;
@@ -89,7 +85,6 @@ function Leads() {
     }
   };
 
-  /* ================= ADD LEAD ================= */
   const openAdd = (statusId = "") => {
     setForm({ ...initialForm, leadStatus: statusId });
     setShowModal(true);
@@ -142,9 +137,7 @@ function Leads() {
     toast.success("Lead deleted");
     fetchAll();
   };
-  
 
-  /* ================= FILTERED LEADS ================= */
   const filteredLeads = useMemo(() => {
     return allLeads.filter((l) => {
       const text = `
@@ -167,7 +160,6 @@ function Leads() {
     });
   }, [allLeads, searchKey, statusFilter]);
 
-  /* ================= RENDER ================= */
   return (
     <div className="bodyContainer">
       <Sidebar selectedMenu="Leads" selectedItem="Leads" />

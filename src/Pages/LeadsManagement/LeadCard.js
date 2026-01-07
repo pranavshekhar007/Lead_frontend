@@ -61,7 +61,7 @@ export default function LeadCard({ lead, onEdit, onDelete, onView }) {
           {...listeners}
           style={{ cursor: "grab" }}
         >
-          {/* <BsGripVertical color="#9ca3af" /> */}
+          <BsGripVertical color="#9ca3af" />
           <h6 className="fw-bold mb-1">{lead.leadName}</h6>
         </div>
 
@@ -113,7 +113,7 @@ export default function LeadCard({ lead, onEdit, onDelete, onView }) {
         <div className="fw-semibold mb-2">
           ₹{Number(lead.leadValue).toLocaleString()}
         </div>
-      )}
+      ) || "N/A"}
 
       {/* ================= FOOTER ================= */}
       <div className="d-flex justify-content-between align-items-center mt-2">
