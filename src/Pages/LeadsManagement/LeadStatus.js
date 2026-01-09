@@ -106,11 +106,17 @@ function LeadStatus() {
     setEditing(item);
     setForm(
       item
-        ? { ...item, color: "#3B82F6" }
+        ? {
+            name: item.name,
+            description: item.description,
+            status: item.status,
+            color: item.color || "#3B82F6",
+          }
         : initialForm
     );
     setShowModal(true);
   };
+  
 
   const handleSave = async () => {
     if (!form.name) {
@@ -209,7 +215,7 @@ function LeadStatus() {
                               width: 14,
                               height: 14,
                               borderRadius: "50%",
-                              background: getColorByName(s.name),
+                              background: s.color,
                               display: "inline-block",
                             }}
                           />
