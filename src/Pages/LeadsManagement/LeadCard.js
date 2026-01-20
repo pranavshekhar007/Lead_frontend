@@ -17,7 +17,14 @@ export default function LeadCard({ lead, onEdit, onDelete, onView }) {
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id: lead._id });
+    isDragging,
+  } = useSortable({
+    id: lead._id,
+    data: {
+      type: "Lead",
+      lead,
+    },
+  });
 
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
@@ -36,7 +43,9 @@ export default function LeadCard({ lead, onEdit, onDelete, onView }) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    transition,
     borderLeft: `5px solid ${lead.leadStatus?.color || "#3b82f6"}`,
+    opacity: isDragging ? 0.3 : 1,
   };
 
   const initials = lead.leadName

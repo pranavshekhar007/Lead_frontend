@@ -23,6 +23,7 @@ export function usePermission(moduleName) {
       canDelete: selected.includes("delete"),
     };
   } catch (error) {
+
     console.error("Failed to read permissions:", error);
     return {};
   }

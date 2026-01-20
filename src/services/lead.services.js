@@ -104,3 +104,16 @@ export const getLeadDashboardDetailsServ = async () => {
     throw error;
   }
 };
+
+export const reorderLeadsServ = async (updates) => {
+  try {
+    const response = await axios.put(
+      BASE_URL + "lead/reorder",
+      { updates }
+    );
+    return response;
+  } catch (error) {
+    console.error("Error reordering leads:", error);
+    throw error;
+  }
+};

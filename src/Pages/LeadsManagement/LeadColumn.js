@@ -1,4 +1,5 @@
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
 import LeadCard from "./LeadCard";
 
 export default function LeadColumn({
@@ -9,8 +10,17 @@ export default function LeadColumn({
   onDelete,
   onView,
 }) {
+  const { setNodeRef } = useDroppable({
+    id: status._id,
+    data: {
+      type: "Column",
+      status,
+    },
+  });
+
   return (
     <div
+      ref={setNodeRef}
       className="kanban-column"
       style={{
         width: 320,
@@ -19,10 +29,9 @@ export default function LeadColumn({
         padding: 12,
         display: "flex",
         flexDirection: "column",
-        maxHeight: "calc(100vh - 260px)", // ✅ fixed column height
+        maxHeight: "calc(100vh - 260px)",
       }}
     >
-      {/* ================= HEADER ================= */}
       <div className="d-flex justify-content-between align-items-center mb-2">
         <div className="d-flex align-items-center gap-2">
           <span
@@ -53,7 +62,6 @@ export default function LeadColumn({
         </span>
       </div>
 
-      {/* ================= ADD LEAD BUTTON ================= */}
       <button
         className="btn mb-2"
         style={{
@@ -68,7 +76,6 @@ export default function LeadColumn({
         + Add Lead
       </button>
 
-      {/* ================= SCROLLABLE CARDS ================= */}
       <div
         className="kanban-cards"
         style={{

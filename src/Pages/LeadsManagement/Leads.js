@@ -1,7 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Sidebar from "../../Components/Sidebar";
 import TopNav from "../../Components/TopNav";
-import { DndContext, closestCorners } from "@dnd-kit/core";
+import {
+  DndContext,
+  closestCorners,
+  useSensor,
+  useSensors,
+  PointerSensor,
+  KeyboardSensor,
+  DragOverlay,
+} from "@dnd-kit/core";
+import { sortableKeyboardCoordinates, arrayMove } from "@dnd-kit/sortable";
 import { toast } from "react-toastify";
 
 import {
@@ -10,12 +19,14 @@ import {
   updateLeadStatusServ,
   deleteLeadServ,
   updateLeadServ,
+  reorderLeadsServ,
 } from "../../services/lead.services";
 
 import { getLeadStatusListServ } from "../../services/leadStatus.services";
 import { getLeadSourceListServ } from "../../services/leadSources.services";
 
 import LeadColumn from "./LeadColumn";
+import LeadCard from "./LeadCard";
 import AddLeadModal from "./AddLeadModal";
 
 const initialForm = {
@@ -42,8 +53,19 @@ function Leads() {
 
   const [form, setForm] = useState(initialForm);
   const [showModal, setShowModal] = useState(false);
+  const [activeLead, setActiveLead] = useState(null);
 
-  // universal search & filter
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 10,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   const [searchKey, setSearchKey] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
 
@@ -70,18 +92,71 @@ function Leads() {
     fetchAll();
   }, []);
 
+  const onDragStart = (event) => {
+    if (event.active.data.current?.type === "Lead") {
+      setActiveLead(event.active.data.current.lead);
+    }
+  };
+
   const onDragEnd = async ({ active, over }) => {
+    setActiveLead(null);
     if (!over) return;
     if (active.id === over.id) return;
 
-    try {
-      await updateLeadStatusServ(active.id, {
-        statusId: over.id,
-      });
-      toast.success("Lead status updated");
-      fetchAll();
-    } catch {
-      toast.error("Failed to update status");
+    const activeData = active.data.current;
+    const overData = over.data.current;
+
+    if (!activeData || !overData) return;
+
+    const activeLeadData = activeData.lead;
+    const activeStatusId = activeLeadData.leadStatus?._id || activeLeadData.leadStatus;
+
+    let newStatusId = null;
+    if (overData.type === "Column") {
+      newStatusId = overData.status._id;
+    } else if (overData.type === "Lead") {
+      newStatusId = overData.lead.leadStatus?._id;
+    }
+
+    if (!newStatusId) return;
+
+    if (activeStatusId === newStatusId) {
+      const statusLeads = allLeads.filter(
+        (l) => (l.leadStatus?._id || l.leadStatus) === activeStatusId
+      );
+      const oldIndex = statusLeads.findIndex((l) => l._id === active.id);
+      const newIndex = statusLeads.findIndex((l) => l._id === over.id);
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reorderedLeads = arrayMove(statusLeads, oldIndex, newIndex);
+      const updates = reorderedLeads.map((lead, index) => ({
+        id: lead._id,
+        order: index,
+      }));
+
+      const otherLeads = allLeads.filter(
+        (l) => (l.leadStatus?._id || l.leadStatus) !== activeStatusId
+      );
+      setAllLeads([...otherLeads, ...reorderedLeads]);
+
+      try {
+        await reorderLeadsServ(updates);
+        toast.success("Lead order updated");
+      } catch {
+        toast.error("Failed to update order");
+        fetchAll();
+      }
+    } else {
+      try {
+        await updateLeadStatusServ(activeLeadData._id, {
+          leadStatus: newStatusId,
+        });
+        toast.success("Lead status updated");
+        fetchAll();
+      } catch {
+        toast.error("Failed to update status");
+      }
     }
   };
 
@@ -110,13 +185,13 @@ function Leads() {
     });
     setShowModal(true);
   };
-  
+
   const saveLead = async () => {
     if (!form.leadName || !form.phone || !form.leadStatus) {
       toast.error("Required fields missing");
       return;
     }
-  
+
     if (editingId) {
       await updateLeadServ(editingId, form);
       toast.success("Lead updated");
@@ -124,12 +199,12 @@ function Leads() {
       await createLeadServ(form);
       toast.success("Lead created");
     }
-  
+
     setShowModal(false);
     setEditingId(null);
     fetchAll();
   };
-  
+
 
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this lead?")) return;
@@ -153,7 +228,7 @@ function Leads() {
 
       const matchStatus = statusFilter
         ? l.leadStatus?._id === statusFilter ||
-          l.status?._id === statusFilter
+        l.status?._id === statusFilter
         : true;
 
       return matchSearch && matchStatus;
@@ -167,62 +242,60 @@ function Leads() {
         <TopNav />
 
         <div className="p-4">
-          {/* HEADER */}
-          <div className="d-flex justify-content-between mb-3">
-            <h4 className="fw-bold">Leads</h4>
-            <button
-              className="btn btn-success"
-              onClick={() => openAdd("")}
+          <h4 className="fw-bold">Leads</h4>
+          <button
+            className="btn btn-success"
+            onClick={() => openAdd("")}
+            style={{
+              borderRadius: "10px"
+            }}
+          >
+            + Add Lead
+          </button>
+        </div>
+
+        <div className="row g-2 mb-3">
+          <div className="col-md-4">
+            <input
+              className="form-control"
+              placeholder="Search name / phone / email / company"
+              value={searchKey}
+              onChange={(e) => setSearchKey(e.target.value)}
+              style={{
+                lineHeight: "1.9",
+                borderRadius: "10px"
+              }}
+            />
+          </div>
+
+          <div className="col-md-3">
+            <select
+              className="form-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
               style={{
                 borderRadius: "10px"
               }}
             >
-              + Add Lead
-            </button>
+              <option value="">All Status</option>
+              {statuses.map((s) => (
+                <option key={s._id} value={s._id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
           </div>
+        </div>
 
-          {/* SEARCH & FILTER */}
-          <div className="row g-2 mb-3">
-            <div className="col-md-4">
-              <input
-                className="form-control"
-                placeholder="Search name / phone / email / company"
-                value={searchKey}
-                onChange={(e) => setSearchKey(e.target.value)}
-                style={{
-                  lineHeight: "1.9",
-                  borderRadius: "10px"
-                }}
-              />
-            </div>
-
-            <div className="col-md-3">
-              <select
-                className="form-select"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                style={{
-                  borderRadius: "10px"
-                }}
-              >
-                <option value="">All Status</option>
-                {statuses.map((s) => (
-                  <option key={s._id} value={s._id}>
-                    {s.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* KANBAN BOARD */}
-          <DndContext
-            collisionDetection={closestCorners}
-            onDragEnd={onDragEnd}
-          >
-            <div className="kanban-board">
-              {statuses.map((status) => (
-                <LeadColumn
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={onDragStart}
+          onDragEnd={onDragEnd}
+        >
+          <div className="kanban-board">
+            {statuses.map((status) => (
+              <LeadColumn
                 key={status._id}
                 status={status}
                 leads={filteredLeads.filter(
@@ -233,26 +306,34 @@ function Leads() {
                 onAdd={openAdd}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
-                onView={(lead) => console.log("View lead", lead)} // optional
+                onView={(lead) => console.log("View lead", lead)}
               />
-              
-              ))}
-            </div>
-          </DndContext>
-        </div>
 
-        {/* ADD LEAD MODAL */}
-        {showModal && (
-          <AddLeadModal
-            form={form}
-            setForm={setForm}
-            statuses={statuses}
-            sources={sources}
-            onClose={() => setShowModal(false)}
-            onSave={saveLead}
-          />
-        )}
+            ))}
+            <DragOverlay>
+              {activeLead ? (
+                <LeadCard
+                  lead={activeLead}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onView={(lead) => console.log("View lead", lead)}
+                />
+              ) : null}
+            </DragOverlay>
+          </div>
+        </DndContext>
       </div>
+
+      {showModal && (
+        <AddLeadModal
+          form={form}
+          setForm={setForm}
+          statuses={statuses}
+          sources={sources}
+          onClose={() => setShowModal(false)}
+          onSave={saveLead}
+        />
+      )}
     </div>
   );
 }
