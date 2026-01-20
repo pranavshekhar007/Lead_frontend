@@ -28,6 +28,8 @@ import { getLeadSourceListServ } from "../../services/leadSources.services";
 import LeadColumn from "./LeadColumn";
 import LeadCard from "./LeadCard";
 import AddLeadModal from "./AddLeadModal";
+import DownloadExcelButton from "../../Components/DownloadExcelButton";
+import UploadExcelInput from "../../Components/UploadExcelInput";
 
 const initialForm = {
   leadName: "",
@@ -241,17 +243,42 @@ function Leads() {
       <div className="mainContainer">
         <TopNav />
 
-        <div className="p-4">
-          <h4 className="fw-bold">Leads</h4>
-          <button
-            className="btn btn-success"
-            onClick={() => openAdd("")}
-            style={{
-              borderRadius: "10px"
-            }}
-          >
-            + Add Lead
-          </button>
+        <div className="p-4 d-flex justify-content-between align-items-center">
+          <h4 className="fw-bold mb-0">Leads</h4>
+          <div className="d-flex gap-2">
+            <DownloadExcelButton
+              apiEndpoint={`${process.env.REACT_APP_BASE_URL}/lead/export`}
+              fileName={`leads-export-${new Date().toISOString().split('T')[0]}.xlsx`}
+              buttonText="Download Excel"
+              style={{
+                backgroundColor: '#28a745',
+                borderRadius: '10px',
+              }}
+            />
+            <UploadExcelInput
+              apiEndpoint={`${process.env.REACT_APP_BASE_URL}/lead/import`}
+              onSuccess={(data) => {
+                toast.success(data.message || 'Leads imported successfully');
+                fetchAll();
+              }}
+              onError={(error) => {
+                toast.error(error || 'Failed to import leads');
+              }}
+              buttonText="Upload"
+              style={{
+                borderRadius: '10px',
+              }}
+            />
+            <button
+              className="btn btn-success"
+              onClick={() => openAdd("")}
+              style={{
+                borderRadius: "10px"
+              }}
+            >
+              + Add Lead
+            </button>
+          </div>
         </div>
 
         <div className="row g-2 mb-3">
