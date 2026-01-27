@@ -62,15 +62,16 @@ const NAV_STRUCTURE = [
   {
     menu: "Finance Management",
     subMenu: [
-      { name: "Finance", path: "/finance"},
+      { name: "Finance", path: "/finance" },
     ],
   },
   {
     menu: "Leads",
     subMenu: [
       { name: "Leads Status", path: "/leads-status", },
-      { name: "Leads Sources", path: "/leads-source",},
+      { name: "Leads Sources", path: "/leads-source", },
       { name: "Leads", path: "/leads" },
+      { name: "Generate Lead", path: "/generate-lead" },
     ],
   },
 ];

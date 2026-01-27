@@ -47,7 +47,7 @@ function TopNav() {
 
   // Determine if the current breadcrumb is only Dashboard or a module
   const isDashboard = breadcrumbs.length === 1 && breadcrumbs[0].name === "Dashboard";
-  const moduleIcon = !isDashboard ? moduleIcons[breadcrumbs[0].name] : moduleIcons["Dashboard"];
+  const moduleIcon = !isDashboard && breadcrumbs.length > 0 ? moduleIcons[breadcrumbs[0].name] : moduleIcons["Dashboard"];
 
   return (
     <div className="topNavMain p-3 p-md-4">

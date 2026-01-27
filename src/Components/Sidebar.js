@@ -117,6 +117,7 @@ function Sidebar({ selectedMenu, selectedItem }) {
           { name: "Leads Status", path: "/leads-status", module: "Leads Status" },
           { name: "Leads Sources", path: "/leads-source", module: "Leads Sources" },
           { name: "Leads", path: "/leads", module: "Leads" },
+          { name: "Generate Lead", path: "/generate-lead", module: "Leads" },
         ],
       },
     ],
@@ -223,9 +224,8 @@ function Sidebar({ selectedMenu, selectedItem }) {
               </button>
 
               <div
-                className={`hrm-sub ${
-                  expandedGroup && isExpanded ? "show" : ""
-                }`}
+                className={`hrm-sub ${expandedGroup && isExpanded ? "show" : ""
+                  }`}
               >
                 {group.subMenu.map((s) => {
                   const active =

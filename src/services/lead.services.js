@@ -117,3 +117,21 @@ export const reorderLeadsServ = async (updates) => {
     throw error;
   }
 };
+
+/* SCRAPE LEAD */
+export const scrapeLeadServ = async (formData) => {
+  try {
+    const response = await axios.post(
+      BASE_URL + "lead/scrape",
+      formData,
+      // If format is csv or json-file, we expect a blob response
+      formData.format && formData.format !== 'json'
+        ? { responseType: 'blob' }
+        : {}
+    );
+    return response;
+  } catch (error) {
+    console.error("Error scraping lead:", error);
+    throw error;
+  }
+};
