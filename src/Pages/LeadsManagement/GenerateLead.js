@@ -1,32 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Sidebar from "../../Components/Sidebar";
 import TopNav from "../../Components/TopNav";
 import { toast } from "react-toastify";
-import { scrapeLeadServ, getLeadDashboardDetailsServ } from "../../services/lead.services";
-import Skeleton from "react-loading-skeleton";
+import { scrapeLeadServ, transferScrapeDataToLeadsServ } from "../../services/lead.services";
 import "react-loading-skeleton/dist/skeleton.css";
-import {
-    ResponsiveContainer,
-    PieChart,
-    Pie,
-    Cell,
-    Tooltip,
-    Legend,
-    BarChart,
-    Bar,
-    CartesianGrid,
-    XAxis,
-    YAxis,
-} from "recharts";
-
-const STATUS_COLORS = [
-    "#10b981",
-    "#3b82f6",
-    "#f59e0b",
-    "#ef4444",
-    "#8b5cf6",
-    "#14b8a6",
-];
 
 const GenerateLead = () => {
     const [url, setUrl] = useState("");
@@ -34,23 +11,7 @@ const GenerateLead = () => {
     const [format, setFormat] = useState("json");
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
-    const [dashboardDetails, setDashboardDetails] = useState(null);
-    const [dashboardLoading, setDashboardLoading] = useState(true);
 
-    useEffect(() => {
-        fetchDashboard();
-    }, []);
-
-    const fetchDashboard = async () => {
-        try {
-            const res = await getLeadDashboardDetailsServ();
-            setDashboardDetails(res?.data?.data);
-        } catch (err) {
-            console.error("Lead dashboard error:", err);
-        } finally {
-            setDashboardLoading(false);
-        }
-    };
 
     const handleGenerate = async () => {
         if (!url) {
@@ -66,7 +27,8 @@ const GenerateLead = () => {
         setResult(null);
 
         try {
-            const fieldsArray = fields.split(',').map(f => f.trim()).filter(f => f);
+            // const fieldsArray = fields.split(',').map(f => f.trim()).filter(f => f);
+            const fieldsArray = ["leadName", "email", "phone", "company", "accountName", "accountIndustry", "website", "position", "leadValue", "leadStatus", "leadSource", "address", "notes", "status", "order"];
             const payload = {
                 url,
                 fields: fieldsArray,
@@ -103,6 +65,25 @@ const GenerateLead = () => {
         } catch (error) {
             console.error("Error generating leads:", error);
             toast.error(error.response?.data?.error || "Failed to generate leads. Please check the URL and fields.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleBatchCreate = async () => {
+        if (!result) {
+            toast.error("Please generate leads first");
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            const response = await transferScrapeDataToLeadsServ(result);
+            toast.success("Leads batch created successfully");
+        } catch (error) {
+            console.error("Error batch creating lead:", error);
+            toast.error(error.response?.data?.error || "Failed to batch create leads");
         } finally {
             setLoading(false);
         }
@@ -151,7 +132,7 @@ const GenerateLead = () => {
                                     <option value="csv">CSV</option>
                                 </select>
                             </div>
-                            <div className="col-12 mt-4 text-end">
+                            <div className="col-12 d-flex justify-content-end gap-3 mt-4">
                                 <button
                                     className="btn btn-primary px-4"
                                     onClick={handleGenerate}
@@ -159,6 +140,14 @@ const GenerateLead = () => {
                                 >
                                     {loading ? "Generating..." : "Generate Lead"}
                                 </button>
+                                {result &&
+                                    <button
+                                        className="btn btn-primary px-4"
+                                        onClick={handleBatchCreate}
+                                        disabled={loading}
+                                    >
+                                        {loading ? "Transfering..." : "Transfer Lead"}
+                                    </button>}
                             </div>
                         </div>
                     </div>
@@ -172,68 +161,6 @@ const GenerateLead = () => {
                             </div>
                         </div>
                     )}
-
-                    {/* Charts Section */}
-                    <div className="row g-4">
-                        <div className="col-md-6">
-                            <div className="card shadow-sm p-4 h-100">
-                                <h5 className="fw-semibold mb-3">Leads by Status</h5>
-                                {dashboardLoading ? (
-                                    <Skeleton height={260} />
-                                ) : (
-                                    <ResponsiveContainer width="100%" height={260}>
-                                        <PieChart>
-                                            <Pie
-                                                data={dashboardDetails?.statusCounts || []}
-                                                dataKey="count"
-                                                nameKey="name"
-                                                cx="50%"
-                                                cy="50%"
-                                                outerRadius={100}
-                                                label
-                                            >
-                                                {dashboardDetails?.statusCounts?.map((_, index) => (
-                                                    <Cell
-                                                        key={index}
-                                                        fill={
-                                                            STATUS_COLORS[index % STATUS_COLORS.length]
-                                                        }
-                                                    />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip />
-                                            <Legend />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="col-md-6">
-                            <div className="card shadow-sm p-4 h-100">
-                                <h5 className="fw-semibold mb-3">Daily Lead Creation</h5>
-                                {dashboardLoading ? (
-                                    <Skeleton height={260} />
-                                ) : (
-                                    <ResponsiveContainer width="100%" height={260}>
-                                        <BarChart data={dashboardDetails?.dailyTrend || []}>
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey="date" />
-                                            <YAxis allowDecimals={false} />
-                                            <Tooltip />
-                                            <Bar
-                                                dataKey="count"
-                                                fill="#10b981"
-                                                name="Leads"
-                                                radius={[6, 6, 0, 0]}
-                                            />
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </div>
         </div>
