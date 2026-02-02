@@ -19,7 +19,6 @@ import ProductUpdateStep2 from '../Pages/Product/ProductUpdateStep2';
 import ProductUpdateStep3 from '../Pages/Product/ProductUpdateStep3';
 import NotificationList from '../Pages/Notification/NotificationList';
 import ProductUpdateAttribute from '../Pages/Product/ProductUpdateAtrribute';
-// import RoleList from '../Pages/CommandCenter/RoleList';
 import PermissionList from '../Pages/CommandCenter/PermissionList';
 import AdminList from '../Pages/CommandCenter/AdminList';
 import UserPrivacyPolicy from '../Pages/Support/PrivacyPolicy/UserPrivacyPolicy';
@@ -50,7 +49,6 @@ import PincodeList from '../Pages/Location/PinCodeList';
 import AreaList from '../Pages/Location/AreaList';
 import BulkUpload from '../Pages/Location/BulkUpload';
 import Scheme from '../Pages/Subscription/Scheme';
-// import ChitSubscription from '../Pages/Subscription/ChitSubscription';
 import SubscriptionChitDetails from '../Pages/Subscription/SubscriptionDetails';
 import SubscriptionChitUsersList from '../Pages/Subscription/SubscriptionChitUsersList';
 import PremiumCustomerList from '../Pages/User/PremiumCutomerList';
@@ -80,6 +78,7 @@ import Leads from '../Pages/LeadsManagement/Leads';
 import LeadStatus from '../Pages/LeadsManagement/LeadStatus';
 import LeadSource from '../Pages/LeadsManagement/LeadSources';
 import GenerateLead from '../Pages/LeadsManagement/GenerateLead';
+import PermissionGuard from '../Components/PermissionGuard';
 
 
 function AuthenticatedRoutes() {
@@ -87,37 +86,27 @@ function AuthenticatedRoutes() {
     <Routes>
       <Route path="/" element={<Dashboard />} />
 
-      {/* Generate Lead */}
-      <Route path="/generate-lead" element={<GenerateLead />} />
+      <Route path="/generate-lead" element={<PermissionGuard module="Leads"><GenerateLead /></PermissionGuard>} />
 
-      {/* categories  */}
       <Route path="/category-list" element={<CategoriesList />} />
       <Route path="/sub-category-list" element={<SubCategoriesList />} />
 
-      {/* attribute */}
       <Route path="/attribute-set-list" element={<AttributeSetList />} />
       <Route path="/attribute-list" element={<AttributeList />} />
 
-      {/* brand */}
       <Route path="/brand-list" element={<BrandsList />} />
 
-      {/* Banner */}
       <Route path="/banner-list" element={<BannerList />} />
 
-      {/* tag */}
       <Route path="/tag-list" element={<TagList />} />
 
-      {/* tax */}
       <Route path="/tax-list" element={<TaxList />} />
 
 
-      {/* product type  */}
       <Route path="/product-type-list" element={<ProductTypeList />} />
 
-      {/* product manufacture  */}
       <Route path="/product-manufacture-location-list" element={<ProductManufactureLocactionList />} />
 
-      {/* product   */}
       <Route path="/product-list" element={<ProductList />} />
       <Route path="/add-product" element={<AddProduct />} />
       <Route path="/product-approval/:id" element={<ProductApproval />} />
@@ -128,24 +117,18 @@ function AuthenticatedRoutes() {
       <Route path="/product-details/:id" element={<ProductDetails />} />
 
 
-      {/* support */}
       <Route path="/faq-user-list" element={<UserFaq />} />
       <Route path="/contact-query" element={<ContactQueryList />} />
 
-      {/* notification */}
       <Route path="/notification-list" element={<NotificationList />} />
 
-      {/* command center */}
-      {/* <Route path="/role-list" element={<RoleList/>}/> */}
-      <Route path="/permission-list" element={<PermissionList />} />
+      <Route path="/permission-list" element={<PermissionGuard module="Role"><PermissionList /></PermissionGuard>} />
       <Route path="/admin-list" element={<AdminList />} />
 
-      {/* support ticket */}
       <Route path="/user-ticket-list" element={<UserTicketList />} />
       <Route path="/ticket-category-list" element={<TicketCategoryList />} />
       <Route path="/chat-box/:id" element={<ChatBox />} />
 
-      {/* order */}
       <Route path="/order-list" element={<OrderList />} />
       <Route path="/bulk-order-list" element={<BulkOrderList />} />
       <Route path="/orders" element={<OrderList />} />
@@ -153,76 +136,63 @@ function AuthenticatedRoutes() {
       <Route path="/order-details/:id" element={<OrderDetails />} />
       <Route path="/order-invoice/:id" element={<OrderInvoice />} />
 
-      {/* Policy */}
       <Route path='/user-cookie-policy' element={<UserCookiePolicy />} />
       <Route path="/user-terms-condition" element={<UserTermsAndCondition />} />
       <Route path="/user-privacy-policy" element={<UserPrivacyPolicy />} />
       <Route path="/user-shipping-policy" element={<UserShippingPolicy />} />
       <Route path="/user-refund-return" element={<UserRefundAndReturn />} />
 
-      {/* Combo Product  */}
       <Route path='/add-combo-product' element={<AddComboProduct />} />
       <Route path='/combo-product-list' element={<ComboProductList />} />
       <Route path="/update-combo-product-step1/:id" element={<ComboProductUpdateStep1 />} />
       <Route path="/update-combo-product-step2/:id" element={<ComboProductUpdateStep2 />} />
       <Route path="/update-combo-product-step3/:id" element={<ComboProductUpdateStep3 />} />
 
-      {/* user routes */}
-      <Route path="/user-list" element={<UserList />} />
-      <Route path="/role-list" element={<RolesList />} />
-      <Route path='/premium-user' element={<PremiumCustomerList />} />
+      <Route path="/user-list" element={<PermissionGuard module="Users"><UserList /></PermissionGuard>} />
+      <Route path="/role-list" element={<PermissionGuard module="Role"><RolesList /></PermissionGuard>} />
+      <Route path='/premium-user' element={<PermissionGuard module="Users"><PremiumCustomerList /></PermissionGuard>} />
 
-      {/* vendor routes  */}
       <Route path='/vendor-list' element={<VendorList />} />
 
-      {/* location list  */}
       <Route path='/state-list' element={<StateList />} />
       <Route path='/city-list' element={<CityList />} />
       <Route path='/pin-code' element={<PincodeList />} />
       <Route path='/area' element={<AreaList />} />
       <Route path='/bulk-upload' element={<BulkUpload />} />
 
-      {/* Subscription Chit  */}
-      {/* <Route path='/subscription' element={<ChitSubscription />} /> */}
       <Route path='/subscription-details/:id' element={<SubscriptionChitDetails />} />
       <Route path='/scheme' element={<Scheme />} />
       <Route path='/subscription-user' element={<SubscriptionChitUsersList />} />
 
-      {/* HR management  */}
-      <Route path='/branch-list' element={<BranchList />} />
-      <Route path='/department-list' element={<DepartmentList />} />
-      <Route path='/designation-list' element={<DesignationList />} />
-      <Route path='/document-type' element={<DocumentTypeList />} />
-      <Route path='/employee-list' element={<EmployeeList />} />
-      <Route path='/create-employee' element={<CreateEmployee />} />
-      <Route path='/edit-employee/:id' element={<EditEmployee />} />
-      <Route path='/award-type' element={<AwardTypeList />} />
-      <Route path='/award-list' element={<AwardList />} />
+      <Route path='/branch-list' element={<PermissionGuard module="Branches"><BranchList /></PermissionGuard>} />
+      <Route path='/department-list' element={<PermissionGuard module="Department"><DepartmentList /></PermissionGuard>} />
+      <Route path='/designation-list' element={<PermissionGuard module="Designation"><DesignationList /></PermissionGuard>} />
+      <Route path='/document-type' element={<PermissionGuard module="Documents Type"><DocumentTypeList /></PermissionGuard>} />
+      <Route path='/employee-list' element={<PermissionGuard module="Employee"><EmployeeList /></PermissionGuard>} />
+      <Route path='/create-employee' element={<PermissionGuard module="Employee"><CreateEmployee /></PermissionGuard>} />
+      <Route path='/edit-employee/:id' element={<PermissionGuard module="Employee"><EditEmployee /></PermissionGuard>} />
+      <Route path='/award-type' element={<PermissionGuard module="Award Types"><AwardTypeList /></PermissionGuard>} />
+      <Route path='/award-list' element={<PermissionGuard module="Awards"><AwardList /></PermissionGuard>} />
 
-      {/* Leave Management  */}
-      <Route path='/leave-type' element={<LeaveType />} />
-      <Route path='/leave-policy' element={<LeavePolicies />} />
-      <Route path='/leave-application' element={<LeaveApplicationList />} />
-      <Route path='/leave-balance' element={<LeaveBalance />} />
+      <Route path='/leave-type' element={<PermissionGuard module="Leave Types"><LeaveType /></PermissionGuard>} />
+      <Route path='/leave-policy' element={<PermissionGuard module="Leave Policies"><LeavePolicies /></PermissionGuard>} />
+      <Route path='/leave-application' element={<PermissionGuard module="Leave Application"><LeaveApplicationList /></PermissionGuard>} />
+      <Route path='/leave-balance' element={<PermissionGuard module="Leave Balance"><LeaveBalance /></PermissionGuard>} />
 
-      {/* Attendance Management  */}
-      <Route path='/shift' element={<Shifts />} />
-      <Route path='/attendance-policy' element={<AttendancePolicy />} />
-      <Route path='/attendance-record' element={<AttendanceRecord />} />
-      <Route path='/attendance-regularization' element={<AttendanceRegularization />} />
+      <Route path='/shift' element={<PermissionGuard module="Shifts"><Shifts /></PermissionGuard>} />
+      <Route path='/attendance-policy' element={<PermissionGuard module="Attendance Policy"><AttendancePolicy /></PermissionGuard>} />
+      <Route path='/attendance-record' element={<PermissionGuard module="Attendance Record"><AttendanceRecord /></PermissionGuard>} />
+      <Route path='/attendance-regularization' element={<PermissionGuard module="Attendance Regularization"><AttendanceRegularization /></PermissionGuard>} />
 
-      {/* loan Collection  */}
-      <Route path='/collection' element={<LoanCollection />} />
-      <Route path='/profit' element={<ProfitDashboard />} />
-      <Route path='/expense' element={<ExpenseDashboard />} />
+      <Route path='/collection' element={<PermissionGuard module="Collection"><LoanCollection /></PermissionGuard>} />
+      <Route path='/profit' element={<PermissionGuard module="Profit"><ProfitDashboard /></PermissionGuard>} />
+      <Route path='/expense' element={<PermissionGuard module="Expense"><ExpenseDashboard /></PermissionGuard>} />
 
-      {/* Finance  */}
-      <Route path='/finance' element={<FinanceDashboard />} />
+      <Route path='/finance' element={<PermissionGuard module="Finance"><FinanceDashboard /></PermissionGuard>} />
 
-      {/* Leads  */}
-      <Route path='/leads' element={<Leads />} />
-      <Route path='/leads-status' element={<LeadStatus />} />
-      <Route path='/leads-source' element={<LeadSource />} />
+      <Route path='/leads' element={<PermissionGuard module="Leads"><Leads /></PermissionGuard>} />
+      <Route path='/leads-status' element={<PermissionGuard module="Leads Status"><LeadStatus /></PermissionGuard>} />
+      <Route path='/leads-source' element={<PermissionGuard module="Leads Sources"><LeadSource /></PermissionGuard>} />
     </Routes>
   )
 }

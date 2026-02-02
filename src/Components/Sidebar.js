@@ -1,6 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useGlobalState } from "../GlobalProvider";
 import { useLocation, useNavigate } from "react-router-dom";
+import { getPermissionListServ } from "../services/permission.service";
 
 const GREEN = "#16a34a";
 
@@ -101,8 +102,8 @@ function Sidebar({ selectedMenu, selectedItem }) {
         menu: "Collections",
         subMenu: [
           { name: "Collections", path: "/collection", module: "Collection" },
-          // { name: "Profit", path: "/profit", module: "Profit" },
-          // { name: "Expense", path: "/expense", module: "Expense" },
+          { name: "Profit", path: "/profit", module: "Profit" },
+          { name: "Expense", path: "/expense", module: "Expense" },
         ],
       },
       {
@@ -126,6 +127,28 @@ function Sidebar({ selectedMenu, selectedItem }) {
 
   // Step 2️⃣: Get permission modules that user can "view"
   const [allowedModules, setAllowedModules] = useState([]);
+  const [permissionMap, setPermissionMap] = useState({});
+
+  // Fetch full permission list to create a map (handle unpopulated permissions)
+  useEffect(() => {
+    const fetchFullPermissions = async () => {
+      try {
+        const res = await getPermissionListServ({ pageCount: 1000, pageNo: 1 });
+        const allPerms = res?.data?.data || res?.data || [];
+
+        const map = {};
+        allPerms.forEach(p => {
+          if (p._id && p.module) {
+            map[p._id] = p.module;
+          }
+        });
+        setPermissionMap(map);
+      } catch (err) {
+        console.error("Failed to map permissions for sidebar:", err);
+      }
+    };
+    fetchFullPermissions();
+  }, []);
 
   useEffect(() => {
     if (globalState?.permissions) {
@@ -135,28 +158,47 @@ function Sidebar({ selectedMenu, selectedItem }) {
           : JSON.parse(globalState.permissions);
 
         const modulesWithView = perms
-          .filter(
-            (p) =>
-              p?.selectedActions?.includes("view") && p?.permissionId?.module
-          )
-          .map((p) => p.permissionId.module);
+          .filter((p) => {
+            // Check if 'view' is present in either new 'selectedActions' or old 'actions'
+            const actions = p.selectedActions || p.actions || [];
+            return actions.includes("view");
+          })
+          .map((p) => {
+            // Priority 1: Populated permissionId object
+            if (p.permissionId && p.permissionId.module) {
+              return p.permissionId.module;
+            }
+            // Priority 2: Mapped from ID string
+            if (p.permissionId && typeof p.permissionId === 'string') {
+              return permissionMap[p.permissionId];
+            }
+            // Priority 3: Fallback checks
+            if (p.permissionId && p.permissionId._id && permissionMap[p.permissionId._id]) {
+              return permissionMap[p.permissionId._id];
+            }
+            return null;
+          })
+          .filter(Boolean); // Remove nulls
 
+        // If 'Dashboard' is strictly not a permission module but we want it always
+        // The filtering logic below handles 'Dashboard' explicitly, so this list is just extras.
         setAllowedModules(modulesWithView);
       } catch (err) {
         console.error("Failed to parse permissions:", err);
       }
     }
-  }, [globalState.permissions]);
+  }, [globalState.permissions, permissionMap]);
 
   // Step 3️⃣: Filter nav items based on allowed modules
   const filteredNavItems = allNavItems
-    .map((group) => ({
-      ...group,
-      subMenu: group.subMenu.filter(
-        (s) => allowedModules.includes(s.module) || s.name === "Dashboard" // always show dashboard
-      ),
-    }))
-    .filter((group) => group.subMenu.length > 0);
+    // .map((group) => ({
+    //   ...group,
+    //   subMenu: group.subMenu.filter(
+    //     (s) => allowedModules.includes(s.module) || s.name === "Dashboard" // always show dashboard
+    //   ),
+    // }))
+    // .filter((group) => group.subMenu.length > 0)
+    ;
 
   const [openMenu, setOpenMenu] = useState(selectedMenu || "Dashboard");
   const isActivePath = (p) => pathname === p;
